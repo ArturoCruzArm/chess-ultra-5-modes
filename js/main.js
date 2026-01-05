@@ -12,10 +12,16 @@ var capturedPieces = { white: [], black: [] };
 var soundEnabled = true;
 
 // Reloj de ajedrez
-var whiteTime = 600; // segundos
+var whiteTime = 600;
 var blackTime = 600;
 var clockInterval = null;
 var activePlayer = 'white';
+
+// NUEVAS VARIABLES PARA MODOS
+var gameMode = 'vsAI'; // vsAI, 2player, puzzle, analysis, tournament
+var tournamentGames = [];
+var tournamentScore = { wins: 0, draws: 0, losses: 0 };
+var currentEvaluation = 0;
 
 // ============================================
 // VALORES DE LAS PIEZAS
@@ -87,6 +93,34 @@ var config = {
 function onDragStart(source, piece, position, orientation) {
     if (game.game_over() || !gameInProgress) return false;
 
+    // MODO 2 JUGADORES: Permitir mover al jugador del turno actual
+    if (gameMode === '2player') {
+        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+            return false;
+        }
+        return true;
+    }
+
+    // MODO PUZZLE: Permitir solo mover las piezas del turno actual
+    if (gameMode === 'puzzle') {
+        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+            return false;
+        }
+        return true;
+    }
+
+    // MODO ANÁLISIS: Permitir mover cualquier pieza
+    if (gameMode === 'analysis') {
+        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+            return false;
+        }
+        return true;
+    }
+
+    // MODO vs IA y TORNEO: Solo permitir mover piezas del jugador
     if ((playerColor === 'white' && piece.search(/^b/) !== -1) ||
         (playerColor === 'black' && piece.search(/^w/) !== -1)) {
         return false;
@@ -136,18 +170,59 @@ function onDrop(source, target) {
     updateStatistics();
     updateStatus();
 
+    // NUEVAS ACTUALIZACIONES
+    updateEvaluation();
+    updateOpeningDetection();
+
     if (game.in_check()) {
         playSound('check');
+    }
+
+    // MODO PUZZLE: Verificar si el movimiento es correcto
+    if (gameMode === 'puzzle') {
+        var result = checkPuzzleMove(move);
+        if (result.correct) {
+            $('#puzzleHint').removeClass('alert-success alert-danger')
+                .addClass('alert-success')
+                .html('<i class="bi bi-check-circle"></i> ' + result.message).show();
+
+            if (result.complete) {
+                setTimeout(function() {
+                    if (confirm('Puzzle completado! ¿Siguiente puzzle?')) {
+                        loadNextPuzzle();
+                    }
+                }, 1000);
+            }
+        } else {
+            $('#puzzleHint').removeClass('alert-success alert-danger')
+                .addClass('alert-danger')
+                .html('<i class="bi bi-x-circle"></i> ' + result.message).show();
+            game.undo();
+            moveHistory.pop();
+            board.position(game.fen());
+        }
+        return;
     }
 
     // Pausar el reloj mientras la IA piensa
     pauseClock();
 
-    if (!game.game_over()) {
-        window.setTimeout(makeAIMove, 250);
-    } else {
+    if (game.game_over()) {
         pauseClock();
         playSound('gameOver');
+        finishTournamentGame();
+        return;
+    }
+
+    // MODO 2 JUGADORES: Solo cambiar reloj, no llamar IA
+    if (gameMode === '2player') {
+        switchClock();
+        return;
+    }
+
+    // MODO vs IA o ANÁLISIS: Llamar a la IA
+    if (gameMode === 'vsAI' || gameMode === 'analysis' || gameMode === 'tournament') {
+        window.setTimeout(makeAIMove, 250);
     }
 }
 
@@ -298,6 +373,10 @@ function makeAIMove() {
 
             updateMoveHistory();
             updateStatistics();
+
+            // NUEVAS ACTUALIZACIONES
+            updateEvaluation();
+            updateOpeningDetection();
         }
 
         // Descontar el tiempo de pensamiento del reloj de la IA
@@ -332,6 +411,7 @@ function makeAIMove() {
         if (game.game_over()) {
             pauseClock();
             playSound('gameOver');
+            finishTournamentGame();
         } else if (gameInProgress) {
             // Iniciar el reloj del jugador después del movimiento de la IA
             switchClock();
@@ -594,7 +674,24 @@ function newGame() {
 
     $('.player-clock').removeClass('active time-low');
 
-    if (playerColor === 'black') {
+    // NUEVAS ACTUALIZACIONES
+    updateEvaluation();
+    updateOpeningDetection();
+
+    // Ocultar modeInfo si no es puzzle ni tournament
+    if (gameMode !== 'puzzle' && gameMode !== 'tournament') {
+        $('#modeInfo').hide();
+    }
+
+    // Ocultar puzzle hint
+    $('#puzzleHint').hide();
+
+    // Si es modo puzzle, no iniciar automáticamente
+    if (gameMode === 'puzzle') {
+        return;
+    }
+
+    if (playerColor === 'black' && (gameMode === 'vsAI' || gameMode === 'analysis' || gameMode === 'tournament')) {
         window.setTimeout(function() {
             makeAIMove();
         }, 500);
@@ -729,18 +826,170 @@ function exportToPGN() {
 }
 
 // ============================================
+// NUEVAS FUNCIONES - MODOS DE JUEGO
+// ============================================
+
+// Cambiar modo de juego
+function changeGameMode(mode) {
+    gameMode = mode;
+
+    // Mostrar/ocultar controles según el modo
+    if (mode === 'vsAI') {
+        $('#difficultyDiv').show();
+        $('#colorDiv').show();
+        $('#hintBtn').show();
+        $('#whitePlayerName').text('Blancas');
+        $('#blackPlayerName').text('Negras (IA)');
+    } else if (mode === '2player') {
+        $('#difficultyDiv').hide();
+        $('#colorDiv').hide();
+        $('#hintBtn').show();
+        $('#whitePlayerName').text('Jugador 1');
+        $('#blackPlayerName').text('Jugador 2');
+    } else if (mode === 'puzzle') {
+        $('#difficultyDiv').hide();
+        $('#colorDiv').hide();
+        $('#hintBtn').show();
+        loadNextPuzzle();
+    } else if (mode === 'analysis') {
+        $('#difficultyDiv').show();
+        $('#colorDiv').show();
+        $('#hintBtn').show();
+    } else if (mode === 'tournament') {
+        $('#difficultyDiv').show();
+        $('#colorDiv').show();
+        $('#hintBtn').hide();
+        startTournament();
+    }
+
+    newGame();
+}
+
+// Evaluación de posición
+function updateEvaluation() {
+    var evaluation = evaluateBoard(game);
+    currentEvaluation = evaluation / 100;
+
+    $('#evaluationText').text(currentEvaluation.toFixed(1));
+
+    // Actualizar barra (0-100%, 50% = igualdad)
+    var barWidth = 50 + (currentEvaluation * 5);
+    barWidth = Math.max(0, Math.min(100, barWidth));
+    $('#evaluationBar').css('width', barWidth + '%');
+}
+
+// Actualizar detección de aperturas
+function updateOpeningDetection() {
+    if (typeof detectOpening === 'function') {
+        var opening = detectOpening(moveHistory);
+        $('#openingName').text(opening);
+    }
+}
+
+// Sugerencia de movimiento (Hint)
+function showHint() {
+    if (gameMode === 'puzzle') {
+        var hint = getPuzzleHint();
+        $('#puzzleHint').html('<i class="bi bi-lightbulb-fill"></i> ' + hint).show();
+        setTimeout(function() {
+            $('#puzzleHint').fadeOut();
+        }, 5000);
+    } else {
+        // Calcular mejor movimiento
+        var bestMove = calculateBestMove(3);
+        if (bestMove) {
+            alert('Sugerencia: ' + bestMove);
+        }
+    }
+}
+
+// Modo Puzzles
+function loadNextPuzzle() {
+    if (typeof getNextPuzzle === 'function') {
+        var puzzle = getNextPuzzle();
+        game.load(puzzle.fen);
+        board.position(puzzle.fen);
+        moveHistory = [];
+
+        $('#modeInfo').show();
+        $('#modeInfoTitle').html('<i class="bi bi-puzzle"></i> Puzzle ' + puzzle.id);
+        $('#modeInfoContent').html(
+            '<p><strong>Tema:</strong> ' + puzzle.theme + '</p>' +
+            '<p><strong>Dificultad:</strong> ' + '⭐'.repeat(puzzle.difficulty) + '</p>' +
+            '<p class="small text-muted">Encuentra la mejor jugada</p>'
+        );
+
+        updateStatus();
+    }
+}
+
+// Modo Torneo
+function startTournament() {
+    tournamentGames = [];
+    tournamentScore = { wins: 0, draws: 0, losses: 0 };
+    updateTournamentInfo();
+}
+
+function updateTournamentInfo() {
+    $('#modeInfo').show();
+    $('#modeInfoTitle').html('<i class="bi bi-trophy"></i> Torneo');
+    var totalPoints = tournamentScore.wins + (tournamentScore.draws * 0.5);
+    $('#modeInfoContent').html(
+        '<p><strong>Partidas:</strong> ' + tournamentGames.length + '</p>' +
+        '<p><strong>Victorias:</strong> ' + tournamentScore.wins + '</p>' +
+        '<p><strong>Empates:</strong> ' + tournamentScore.draws + '</p>' +
+        '<p><strong>Derrotas:</strong> ' + tournamentScore.losses + '</p>' +
+        '<p><strong>Puntos:</strong> ' + totalPoints.toFixed(1) + '</p>'
+    );
+}
+
+function finishTournamentGame() {
+    if (gameMode !== 'tournament') return;
+
+    var result = 'ongoing';
+    if (game.in_checkmate()) {
+        result = game.turn() === 'w' ? 'loss' : 'win';
+    } else if (game.in_draw() || game.in_stalemate()) {
+        result = 'draw';
+    }
+
+    if (result !== 'ongoing') {
+        tournamentGames.push({ result: result, moves: moveHistory.length });
+
+        if (result === 'win') tournamentScore.wins++;
+        else if (result === 'draw') tournamentScore.draws++;
+        else if (result === 'loss') tournamentScore.losses++;
+
+        updateTournamentInfo();
+
+        setTimeout(function() {
+            if (confirm('Partida terminada. ¿Jugar otra partida del torneo?')) {
+                newGame();
+            }
+        }, 1000);
+    }
+}
+
+// ============================================
 // INICIALIZACIÓN
 // ============================================
 $(document).ready(function() {
     board = Chessboard('board', config);
 
-    // Event listeners
+    // Event listeners existentes
     $('#newGameBtn').on('click', newGame);
     $('#undoBtn').on('click', undoMove);
     $('#flipBoardBtn').on('click', flipBoard);
     $('#saveGameBtn').on('click', saveGame);
     $('#loadGameBtn').on('click', loadGame);
     $('#exportPGNBtn').on('click', exportToPGN);
+
+    // NUEVOS Event listeners
+    $('#hintBtn').on('click', showHint);
+
+    $('input[name="gameMode"]').on('change', function() {
+        changeGameMode($(this).val());
+    });
 
     $('#difficultySelect').on('change', function() {
         difficulty = parseInt($(this).val());
