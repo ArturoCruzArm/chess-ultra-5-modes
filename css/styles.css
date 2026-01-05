@@ -455,3 +455,72 @@ body[data-theme="marble"] .board-wrapper {
 .bi {
     vertical-align: middle;
 }
+
+/* ============================================
+   BARRA DE EVALUACIÓN
+   ============================================ */
+.evaluation-bar-container {
+    width: 100%;
+    height: 30px;
+    background: #000;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.evaluation-bar {
+    height: 100%;
+    background: #fff;
+    transition: width 0.3s ease;
+    width: 50%;
+}
+
+#evaluationText {
+    font-size: 1.2rem;
+    color: #667eea;
+}
+
+/* ============================================
+   SELECTOR DE MODO
+   ============================================ */
+.btn-group .btn {
+    font-size: 0.85rem;
+}
+
+.btn-check:checked + .btn {
+    font-weight: 700;
+}
+
+/* ============================================
+   PANEL DE INFO DE MODO
+   ============================================ */
+#modeInfo {
+    animation: fadeIn 0.3s;
+}
+
+#modeInfoContent {
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   BOTONES COMPACTOS
+   ============================================ */
+.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* ============================================
+   RESPONSIVE MEJORADO
+   ============================================ */
+@media (max-width: 576px) {
+    .btn-group .btn {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    h1 small {
+        display: block;
+        margin-top: 0.5rem;
+    }
+}

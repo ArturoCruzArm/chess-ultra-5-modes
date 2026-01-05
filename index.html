@@ -3,42 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Juego de ajedrez web profesional con IA, reloj, historial, temas y más funciones.">
-    <title>Ajedrez Pro - IA Avanzada</title>
+    <meta name="description" content="Ajedrez Ultra - Versión completa con IA, multijugador, puzzles, análisis y torneo">
+    <title>Ajedrez Ultra - Edición Completa</title>
 
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
-    <!-- Chessboard CSS -->
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-
-    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container-fluid mt-4">
-        <h1 class="text-center mb-4">
-            <i class="bi bi-trophy-fill"></i> Ajedrez Pro
+        <h1 class="text-center mb-3">
+            <i class="bi bi-lightning-fill"></i> Ajedrez Ultra
+            <small class="text-muted fs-6">Edición Completa</small>
         </h1>
 
+        <!-- Selector de Modo de Juego -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-joystick"></i> Modo de Juego</h5>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="gameMode" id="modeVsAI" value="vsAI" checked>
+                            <label class="btn btn-outline-primary" for="modeVsAI">
+                                <i class="bi bi-cpu"></i> vs IA
+                            </label>
+
+                            <input type="radio" class="btn-check" name="gameMode" id="mode2Player" value="2player">
+                            <label class="btn btn-outline-success" for="mode2Player">
+                                <i class="bi bi-people"></i> 2 Jugadores
+                            </label>
+
+                            <input type="radio" class="btn-check" name="gameMode" id="modePuzzle" value="puzzle">
+                            <label class="btn btn-outline-warning" for="modePuzzle">
+                                <i class="bi bi-puzzle"></i> Puzzles
+                            </label>
+
+                            <input type="radio" class="btn-check" name="gameMode" id="modeAnalysis" value="analysis">
+                            <label class="btn btn-outline-info" for="modeAnalysis">
+                                <i class="bi bi-graph-up"></i> Análisis
+                            </label>
+
+                            <input type="radio" class="btn-check" name="gameMode" id="modeTournament" value="tournament">
+                            <label class="btn btn-outline-danger" for="modeTournament">
+                                <i class="bi bi-trophy"></i> Torneo
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
-            <!-- Columna izquierda: Controles principales -->
+            <!-- Panel Izquierdo -->
             <div class="col-lg-3 col-md-4 mb-4">
+                <!-- Configuración -->
                 <div class="card shadow mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-gear-fill"></i> Configuración
-                        </h5>
+                        <h5 class="card-title"><i class="bi bi-gear"></i> Configuración</h5>
 
-                        <!-- Selector de tema -->
                         <div class="mb-3">
-                            <label for="themeSelect" class="form-label">
-                                <strong><i class="bi bi-palette-fill"></i> Tema:</strong>
-                            </label>
-                            <select id="themeSelect" class="form-select">
+                            <label class="form-label"><strong>Tema:</strong></label>
+                            <select id="themeSelect" class="form-select form-select-sm">
                                 <option value="classic" selected>Clásico</option>
                                 <option value="modern">Moderno</option>
                                 <option value="wood">Madera</option>
@@ -46,12 +73,9 @@
                             </select>
                         </div>
 
-                        <!-- Selector de dificultad -->
-                        <div class="mb-3">
-                            <label for="difficultySelect" class="form-label">
-                                <strong><i class="bi bi-speedometer"></i> Dificultad:</strong>
-                            </label>
-                            <select id="difficultySelect" class="form-select">
+                        <div class="mb-3" id="difficultyDiv">
+                            <label class="form-label"><strong>Dificultad IA:</strong></label>
+                            <select id="difficultySelect" class="form-select form-select-sm">
                                 <option value="1">Muy Fácil</option>
                                 <option value="2">Fácil</option>
                                 <option value="3" selected>Medio</option>
@@ -60,23 +84,17 @@
                             </select>
                         </div>
 
-                        <!-- Selector de color -->
-                        <div class="mb-3">
-                            <label for="colorSelect" class="form-label">
-                                <strong><i class="bi bi-circle-half"></i> Jugar como:</strong>
-                            </label>
-                            <select id="colorSelect" class="form-select">
+                        <div class="mb-3" id="colorDiv">
+                            <label class="form-label"><strong>Jugar como:</strong></label>
+                            <select id="colorSelect" class="form-select form-select-sm">
                                 <option value="white" selected>Blancas</option>
                                 <option value="black">Negras</option>
                             </select>
                         </div>
 
-                        <!-- Selector de tiempo -->
                         <div class="mb-3">
-                            <label for="timeControl" class="form-label">
-                                <strong><i class="bi bi-clock-fill"></i> Control de tiempo:</strong>
-                            </label>
-                            <select id="timeControl" class="form-select">
+                            <label class="form-label"><strong>Control tiempo:</strong></label>
+                            <select id="timeControl" class="form-select form-select-sm">
                                 <option value="0">Sin límite</option>
                                 <option value="180">Blitz (3 min)</option>
                                 <option value="300">Rápido (5 min)</option>
@@ -85,90 +103,81 @@
                             </select>
                         </div>
 
-                        <!-- Sonidos -->
-                        <div class="form-check form-switch mb-3">
+                        <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="soundToggle" checked>
-                            <label class="form-check-label" for="soundToggle">
-                                <strong><i class="bi bi-volume-up-fill"></i> Sonidos</strong>
-                            </label>
+                            <label class="form-check-label" for="soundToggle">Sonidos</label>
                         </div>
                     </div>
                 </div>
 
-                <!-- Botones de acción -->
+                <!-- Acciones -->
                 <div class="card shadow mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-controller"></i> Acciones
-                        </h5>
-
-                        <button id="newGameBtn" class="btn btn-success w-100 mb-2">
-                            <i class="bi bi-play-fill"></i> Nueva Partida
+                        <h5 class="card-title"><i class="bi bi-controller"></i> Acciones</h5>
+                        <button id="newGameBtn" class="btn btn-success btn-sm w-100 mb-2">
+                            <i class="bi bi-play"></i> Nueva Partida
                         </button>
-
-                        <button id="undoBtn" class="btn btn-warning w-100 mb-2">
+                        <button id="undoBtn" class="btn btn-warning btn-sm w-100 mb-2">
                             <i class="bi bi-arrow-counterclockwise"></i> Deshacer
                         </button>
-
-                        <button id="flipBoardBtn" class="btn btn-secondary w-100 mb-2">
-                            <i class="bi bi-arrow-repeat"></i> Voltear Tablero
+                        <button id="hintBtn" class="btn btn-info btn-sm w-100 mb-2">
+                            <i class="bi bi-lightbulb"></i> Sugerencia
                         </button>
-
+                        <button id="flipBoardBtn" class="btn btn-secondary btn-sm w-100 mb-2">
+                            <i class="bi bi-arrow-repeat"></i> Voltear
+                        </button>
                         <hr>
-
-                        <button id="saveGameBtn" class="btn btn-info w-100 mb-2">
-                            <i class="bi bi-save-fill"></i> Guardar Partida
+                        <button id="saveGameBtn" class="btn btn-info btn-sm w-100 mb-2">
+                            <i class="bi bi-save"></i> Guardar
                         </button>
-
-                        <button id="loadGameBtn" class="btn btn-info w-100 mb-2">
-                            <i class="bi bi-folder-open"></i> Cargar Partida
+                        <button id="loadGameBtn" class="btn btn-info btn-sm w-100 mb-2">
+                            <i class="bi bi-folder-open"></i> Cargar
                         </button>
-
-                        <button id="exportPGNBtn" class="btn btn-primary w-100">
+                        <button id="exportPGNBtn" class="btn btn-primary btn-sm w-100">
                             <i class="bi bi-download"></i> Exportar PGN
                         </button>
                     </div>
                 </div>
 
-                <!-- Estadísticas -->
+                <!-- Análisis -->
+                <div class="card shadow mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-graph-up"></i> Evaluación</h5>
+                        <div class="evaluation-bar-container mb-2">
+                            <div id="evaluationBar" class="evaluation-bar"></div>
+                        </div>
+                        <div id="evaluationText" class="text-center fw-bold">0.0</div>
+                        <div id="openingName" class="text-muted text-center small mt-2">Posición inicial</div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
                 <div class="card shadow">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-graph-up"></i> Estadísticas
-                        </h5>
+                        <h5 class="card-title"><i class="bi bi-bar-chart"></i> Estadísticas</h5>
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <span class="stat-label">Material Blancas:</span>
-                                <span id="whiteMaterial" class="stat-value">39</span>
+                                <span>Material ♔:</span>
+                                <span id="whiteMaterial">39</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Material Negras:</span>
-                                <span id="blackMaterial" class="stat-value">39</span>
+                                <span>Material ♚:</span>
+                                <span id="blackMaterial">39</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Capturas Blancas:</span>
-                                <span id="whiteCaptures" class="stat-value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Capturas Negras:</span>
-                                <span id="blackCaptures" class="stat-value">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Total Movimientos:</span>
-                                <span id="totalMoves" class="stat-value">0</span>
+                                <span>Movimientos:</span>
+                                <span id="totalMoves">0</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Columna central: Tablero -->
+            <!-- Panel Central -->
             <div class="col-lg-6 col-md-8 mb-4">
-                <!-- Reloj jugador negro -->
+                <!-- Reloj Negro -->
                 <div class="player-clock black-clock mb-2">
-                    <div class="clock-label">
-                        <i class="bi bi-person-fill"></i> Negras
-                    </div>
+                    <div class="clock-label"><i class="bi bi-person"></i> <span id="blackPlayerName">Negras</span></div>
                     <div id="blackClock" class="clock-time">10:00</div>
                 </div>
 
@@ -177,73 +186,69 @@
                     <div id="board" class="board-container"></div>
                 </div>
 
-                <!-- Reloj jugador blanco -->
+                <!-- Reloj Blanco -->
                 <div class="player-clock white-clock mt-2">
-                    <div class="clock-label">
-                        <i class="bi bi-person-fill"></i> Blancas
-                    </div>
+                    <div class="clock-label"><i class="bi bi-person"></i> <span id="whitePlayerName">Blancas</span></div>
                     <div id="whiteClock" class="clock-time">10:00</div>
                 </div>
 
-                <!-- Estado del juego -->
+                <!-- Estado -->
                 <div class="status-section mt-3">
                     <div id="turnIndicator" class="alert alert-info text-center mb-2">
                         <i class="bi bi-hourglass-split"></i> Turno: Blancas
                     </div>
-                    <div id="gameStatus" class="alert alert-warning text-center" style="display:none;">
-                    </div>
+                    <div id="gameStatus" class="alert alert-warning text-center" style="display:none;"></div>
                     <div id="thinkingIndicator" class="alert alert-light text-center" style="display:none;">
-                        <div class="spinner-border spinner-border-sm me-2" role="status">
-                            <span class="visually-hidden">Pensando...</span>
-                        </div>
+                        <div class="spinner-border spinner-border-sm me-2"></div>
                         <i class="bi bi-cpu"></i> La IA está pensando...
                     </div>
+                    <div id="puzzleHint" class="alert alert-success text-center" style="display:none;"></div>
                 </div>
             </div>
 
-            <!-- Columna derecha: Historial de movimientos -->
+            <!-- Panel Derecho -->
             <div class="col-lg-3 col-md-12">
-                <div class="card shadow">
+                <!-- Historial -->
+                <div class="card shadow mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-list-ol"></i> Historial de Movimientos
-                        </h5>
+                        <h5 class="card-title"><i class="bi bi-list-ol"></i> Historial</h5>
                         <div id="moveHistory" class="move-history">
-                            <p class="text-muted text-center">No hay movimientos aún</p>
+                            <p class="text-muted text-center small">No hay movimientos</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Piezas capturadas -->
-                <div class="card shadow mt-3">
+                <!-- Capturas -->
+                <div class="card shadow mb-3">
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-x-circle"></i> Capturas
-                        </h5>
-                        <div class="captured-section mb-2">
-                            <strong>Blancas capturadas:</strong>
+                        <h5 class="card-title"><i class="bi bi-x-circle"></i> Capturas</h5>
+                        <div class="mb-2">
+                            <strong class="small">Blancas:</strong>
                             <div id="whiteCaptured" class="captured-pieces"></div>
                         </div>
-                        <div class="captured-section">
-                            <strong>Negras capturadas:</strong>
+                        <div>
+                            <strong class="small">Negras:</strong>
                             <div id="blackCaptured" class="captured-pieces"></div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Torneo / Puzzles Info -->
+                <div id="modeInfo" class="card shadow" style="display:none;">
+                    <div class="card-body">
+                        <h5 class="card-title" id="modeInfoTitle">Info</h5>
+                        <div id="modeInfoContent"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Chess.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-
-    <!-- Chessboard.js -->
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-
-    <!-- Script principal -->
+    <script src="js/openings.js"></script>
+    <script src="js/puzzles.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
